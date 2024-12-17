@@ -19,7 +19,7 @@ def scrape_episode_links(page_url, xpath):
         elements = driver.find_elements(By.XPATH, xpath)
         # Extract the href attribute from each element
         episode_links = [element.get_attribute("href") for element in elements]
-        print(f"Found {len(episode_links)} episode links.")
+        logging.info(f"Found {len(episode_links)} episode links.")
         return episode_links
     finally:
         driver.quit()
@@ -48,11 +48,11 @@ def scrape_mp3_url(driver, page_url, iframe_xpath, link_xpath):
             iframe_element = driver.find_element(By.XPATH, iframe_xpath)
             iframe_src = iframe_element.get_attribute("src")
             if iframe_src:
-                print(f"Iframe source found: {iframe_src}")
+                logging.info(f"Iframe source found: {iframe_src}")
         except TimeoutException:
-            print(f"Timeout: No iframe element found on page: {page_url}. Continuing...")
+            logging.info(f"Timeout: No iframe element found on page: {page_url}. Continuing...")
         except NoSuchElementException:
-            print(f"No iframe element found on page: {page_url}. Continuing...")
+            logging.info(f"No iframe element found on page: {page_url}. Continuing...")
 
         # Try to find the direct MP3 link
         try:
@@ -62,14 +62,14 @@ def scrape_mp3_url(driver, page_url, iframe_xpath, link_xpath):
             link_element = driver.find_element(By.XPATH, link_xpath)
             direct_mp3 = link_element.get_attribute("href")
             if direct_mp3:
-                print(f"Direct MP3 link found: {direct_mp3}")
+                logging.info(f"Direct MP3 link found: {direct_mp3}")
         except TimeoutException:
-            print(f"Timeout: No MP3 link found on page: {page_url}. Continuing...")
+            logging.info(f"Timeout: No MP3 link found on page: {page_url}. Continuing...")
         except NoSuchElementException:
-            print(f"No MP3 link found on page: {page_url}. Continuing...")
+            logging.info(f"No MP3 link found on page: {page_url}. Continuing...")
 
         return iframe_src, direct_mp3
 
     except Exception as e:
-        print(f"Error while scraping URL: {page_url}. Error: {e}")
+        logging.info(f"Error while scraping URL: {page_url}. Error: {e}")
         return None, None

@@ -3,6 +3,7 @@ from pydub import AudioSegment
 import whisper
 import os
 import warnings
+import re
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def generate_transcript(audio_path):
@@ -13,11 +14,11 @@ def generate_transcript(audio_path):
     audio.export(wav_path, format="wav")
 
     """Transcribes the audio file using Whisper and performs speaker diarization."""
-    print(f"Starting transcription and speaker diarization for {wav_path}")
+    logging.info(f"Starting transcription and speaker diarization for {wav_path}")
 
 
     # Load the Pyannote speaker diarization pipeline
-    print(f"Performing speaker diarization... for {wav_path}")
+    logging.info(f"Performing speaker diarization... for {wav_path}")
     hf_token = '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' #os.getenv("HF_API_TOKEN")  # Replace with your Hugging Face token
     pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token)
     diarization = pipeline(wav_path)
@@ -26,12 +27,12 @@ def generate_transcript(audio_path):
     model = whisper.load_model("base")#.to("mps")  # Use 'base' model (can be adjusted)
 
     # Transcribe with timestamps
-    print("Transcribing with Whisper...")
+    logging.info("Transcribing with Whisper...")
     result = model.transcribe(wav_path, word_timestamps=True)
     segments = result["segments"]  # Contains the timestamped text
 
     # Combine transcription with speaker diarization
-    print("Combining transcription with speaker diarization...")
+    logging.info("Combining transcription with speaker diarization...")
     final_transcript = []
 
     for seg in segments:
@@ -58,8 +59,8 @@ def generate_transcript(audio_path):
             "text": text
         })
 
-    # Print and return the combined results
+    # logging.info and return the combined results
     for line in final_transcript:
-        print(f"Speaker {line['speaker']} ({line['start']:.2f}-{line['end']:.2f}): {line['text']}")
+        logging.info(f"Speaker {line['speaker']} ({line['start']:.2f}-{line['end']:.2f}): {line['text']}")
 
     return final_transcript

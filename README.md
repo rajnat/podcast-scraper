@@ -31,3 +31,4 @@ This project provides a complete pipeline for scraping podcast episode URLs, dow
     * Semantic Search Engine:
         Use the semantic_data.json to generate embeddings and build a search engine using tools like FAISS or Weaviate.
     * Support RSS feeds
+    * Support for podcasts with more than 1 host and more than 1 guest.

@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from podcast_scraper.scrape import scrape_mp3_url
 from podcast_scraper.transcribe import generate_transcript
-from podcast_scraper.utils import download_podcast, save_text
+from podcast_scraper.utils import download_podcast, save_text, get_page_title
 
 
 def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
@@ -31,33 +31,33 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
     try:
         for i, url in enumerate(urls):
             url = url.strip()
-            print(f"Processing URL {i + 1}/{len(urls)}: {url}")
+            logging.info(f"Processing URL {i + 1}/{len(urls)}: {url}")
 
             # Scrape the MP3 URLs (iframe source and direct link)
             iframe_src, direct_mp3 = scrape_mp3_url(driver, url, iframe_xpath, element_xpath)
             
             if not iframe_src and not direct_mp3:
-                print(f"No valid MP3 URL found for {url}. Skipping...")
+                logging.info(f"No valid MP3 URL found for {url}. Skipping...")
                 continue
 
             mp3_url = direct_mp3 or iframe_src
             if not mp3_url:
-                print(f"No MP3 URL to process for {url}. Skipping...")
+                logging.info(f"No MP3 URL to process for {url}. Skipping...")
                 continue
-
-            audio_file = os.path.join(audio_dir, f"episode_{i + 1}.mp3")
+            title = get_page_title(url)
+            audio_file = os.path.join(audio_dir, f"f{title}.mp3")
             try:
                 download_podcast(mp3_url, audio_file)
             except Exception as e:
-                print(f"Failed to download audio from {mp3_url}. Skipping... Error: {e}")
+                logging.info(f"Failed to download audio from {mp3_url}. Skipping... Error: {e}")
                 continue
 
             try:
                 transcript = generate_transcript('data/output/audio/episode_1.mp3')
-                transcript_file = os.path.join(transcripts_dir, f"episode_{i + 1}.txt")
+                transcript_file = os.path.join(transcripts_dir, f"{title}.txt")
                 save_text(transcript_file, transcript)
             except Exception as e:
-                print(f"Failed to transcribe audio file {audio_file}. Skipping... Error: {e}")
+                logging.info(f"Failed to transcribe audio file {audio_file}. Skipping... Error: {e}")
                 continue
 
             semantic_data.append({
@@ -75,4 +75,4 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
     semantic_data_file = os.path.join(output_dir, "semantic_data.json")
     with open(semantic_data_file, "w") as file:
         json.dump(semantic_data, file, indent=4)
-    print(f"Semantic data saved: {semantic_data_file}")
+    logging.info(f"Semantic data saved: {semantic_data_file}")
