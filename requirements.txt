@@ -1,0 +1,13 @@
+selenium==4.27.1
+webdriver-manager==4.0.2
+openai-whisper==20231117
+lxml==5.3.0
+requests==2.32.3
+python-dotenv==1.0.0
+pyannote-diarization==3.1
+pyannote-segmentation==3.0
+pydub==0.25.1
+wheel==0.45.1
+pytorch-lightning==2.4.0
+pytorch-metric-learning==2.8.1
+whisperx==3.1.6
