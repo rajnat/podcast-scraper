@@ -15,9 +15,9 @@ def initialize_pipeline():
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     hf_token = os.getenv("HF_API_TOKEN")
     # Check MPS availability
-    if torch.backends.mps.is_available():
-        torch.set_default_tensor_type(torch.FloatTensor)  # Ensure tensors default to float
-        torch.set_default_device("mps")  # Set MPS as the default device for PyTorch
+    # if torch.backends.mps.is_available():
+    #     torch.set_default_tensor_type(torch.FloatTensor)  # Ensure tensors default to float
+    torch.set_default_device("cpu")  # Set MPS as the default device for PyTorch
 
     pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token)
     
@@ -42,7 +42,7 @@ def generate_transcript(audio_path):
 
     # Load the Whisper model
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-    model = whisper.load_model("base").to("mps")  # Use 'base' model (can be adjusted)
+    model = whisper.load_model("base").to("cpu")  # Use 'base' model (can be adjusted)
 
     # Transcribe with timestamps
     logging.info("Transcribing with Whisper...")
@@ -79,7 +79,7 @@ def generate_transcript(audio_path):
 
     # logging.info and return the combined results
     for line in final_transcript:
-        logging.info(f"Speaker {line['speaker']} ({line['start']:.2f}-{line['end']:.2f}): {line['text']}")
+        logging.debug(f"Speaker {line['speaker']} ({line['start']:.2f}-{line['end']:.2f}): {line['text']}")
 
     attributed_transcript = assign_speaker_labels(final_transcript)
     return attributed_transcript

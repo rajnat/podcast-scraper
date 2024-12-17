@@ -79,8 +79,3 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
                 logging.info(f"Data appended for URL: {url}")
     finally:
         driver.quit()
-
-    semantic_data_file = os.path.join(output_dir, "semantic_data.json")
-    with open(semantic_data_file, "w") as file:
-        json.dump(semantic_data, file, indent=4)
-    logging.info(f"Semantic data saved: {semantic_data_file}")
