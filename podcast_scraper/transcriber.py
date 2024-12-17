@@ -17,6 +17,8 @@ def transcribe_audio(audio_path, model_name="base"):
     try:
         model = whisper.load_model(model_name)
         result = model.transcribe(audio_path)
+        logging.info(f"Succeeded in transcribing {audio_path}")
         return result["text"], result  # Return text and raw Whisper result
     except Exception as e:
+        logging.exception(f"{e}")
         raise RuntimeError(f"Failed to transcribe {audio_path}: {e}")

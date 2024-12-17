@@ -1,11 +1,11 @@
 import os
 import aiohttp
 import logging
-from app.downloader import download_mp3
-from app.transcriber import transcribe_audio
-from app.diarizer import diarize_audio
-from app.combiner import combine_transcription_and_diarization
-from app.rss_parser import parse_rss_feed
+from podcast_scraper.downloader import download_mp3
+from podcast_scraper.transcriber import transcribe_audio
+from podcast_scraper.diarizer import diarize_audio
+from podcast_scraper.combiner import combine_transcription_and_diarization
+from podcast_scraper.rss_parser import parse_rss_feed
 
 
 async def process_rss_feed(feed_url, output_dir, hf_token, start_date=None, end_date=None):
@@ -42,7 +42,7 @@ async def process_rss_feed(feed_url, output_dir, hf_token, start_date=None, end_
             try:
                 # Download MP3
                 audio_file = os.path.join(audio_dir, f"{title}.mp3")
-                await download_mp3(session, audio_url, audio_file)
+                await download_mp3(audio_url, audio_file)
 
                 # Transcribe and diarize
                 transcript_text, transcription_segments = transcribe_audio(audio_file)

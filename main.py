@@ -8,16 +8,19 @@ from podcast_scraper.rss_pipeline import process_rss_feed
 from podcast_scraper.file_pipeline import process_file
 
 
+
 def setup_logging():
+    """
+    Sets up logging with detailed format including line number and file name.
+    """
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
+        format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
         handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("pipeline.log", mode="w"),
+            logging.StreamHandler(),  # Log to console
+            logging.FileHandler("pipeline.log", mode="w"),  # Log to file
         ],
     )
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Podcast Processing Pipeline")
