@@ -1,5 +1,6 @@
 import requests
 import os
+import logging
 from bs4 import BeautifulSoup
 
 def download_podcast(mp3_url, save_path):
@@ -33,7 +34,10 @@ def get_page_title(url):
     :param url: The URL of the webpage.
     :return: Cleaned title of the page.
     """
-    response = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     
     # Extract the title and sanitize it for filenames

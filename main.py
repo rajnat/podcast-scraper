@@ -1,6 +1,7 @@
 import logging
 import torch
 from podcast_scraper.process import process_urls
+import warnings
 #from podcast_scraper.scrape import scrape_episode_links
 
 
@@ -10,7 +11,7 @@ if __name__ == "__main__":
     element_xpath = "//a[contains(@href, '.mp3')]"  # Update based on your structure
     output_dir = "data/output"  # Directory to save outputs
     logging.basicConfig(
-        level=logging.DEBUG,  # Set the minimum log level (DEBUG, INFO, WARNING, etc.)
+        level=logging.INFO,  # Set the minimum log level (DEBUG, INFO, WARNING, etc.)
         format="%(asctime)s - %(levelname)s - %(message)s",  # Customize log format
         handlers=[
             logging.StreamHandler(),  # Logs to the console

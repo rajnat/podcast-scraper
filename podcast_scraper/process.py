@@ -1,11 +1,12 @@
 import os
 import json
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from podcast_scraper.scrape import scrape_mp3_url
 from podcast_scraper.transcribe import generate_transcript
-from podcast_scraper.utils import download_podcast, save_text, get_page_title
+from podcast_scraper.utils import download_podcast, save_transcript_to_file, get_page_title
 
 
 def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
@@ -55,7 +56,7 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
             try:
                 transcript = generate_transcript('data/output/audio/episode_1.mp3')
                 transcript_file = os.path.join(transcripts_dir, f"{title}.txt")
-                save_text(transcript_file, transcript)
+                save_transcript_to_file(transcript, transcript_file)
             except Exception as e:
                 logging.info(f"Failed to transcribe audio file {audio_file}. Skipping... Error: {e}")
                 continue

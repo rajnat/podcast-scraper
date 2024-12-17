@@ -2,9 +2,9 @@ from pyannote.audio import Pipeline
 from pydub import AudioSegment
 import whisper
 import os
-import warnings
 import re
-warnings.filterwarnings("ignore", category=UserWarning)
+import logging
+from podcast_scraper.attribution import assign_speaker_labels
 
 def generate_transcript(audio_path):
 
@@ -19,8 +19,8 @@ def generate_transcript(audio_path):
 
     # Load the Pyannote speaker diarization pipeline
     logging.info(f"Performing speaker diarization... for {wav_path}")
-    hf_token = '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' #os.getenv("HF_API_TOKEN")  # Replace with your Hugging Face token
-    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token)
+    hf_token = os.getenv("HF_API_TOKEN")
+    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token, device="mps")
     diarization = pipeline(wav_path)
 
     # Load the Whisper model
@@ -63,4 +63,5 @@ def generate_transcript(audio_path):
     for line in final_transcript:
         logging.info(f"Speaker {line['speaker']} ({line['start']:.2f}-{line['end']:.2f}): {line['text']}")
 
-    return final_transcript
+    attributed_transcript = assign_speaker_labels(final_transcript)
+    return attributed_transcript

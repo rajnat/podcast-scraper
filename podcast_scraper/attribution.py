@@ -1,4 +1,5 @@
 import re
+import logging
 
 def assign_speaker_labels(transcript):
     host_name = "Russ Roberts"
