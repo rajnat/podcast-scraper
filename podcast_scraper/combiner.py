@@ -9,8 +9,18 @@ def combine_transcription_and_diarization(transcription_segments, diarization):
     :return: List of combined transcript entries with speaker attribution.
     """
     logging.info("Combining transcription with diarization...")
+    # Validate transcription_segments
+    if not isinstance(transcription_segments, list):
+        raise TypeError("transcription_segments must be a list of dictionaries with 'start', 'end', and 'text' keys.")
+    for i, seg in enumerate(transcription_segments):
+        if not isinstance(seg, dict):
+            raise TypeError(f"Segment at index {i} is not a dictionary: {seg}")
+        if not all(k in seg for k in ("start", "end", "text")):
+            raise ValueError(f"Segment at index {i} is missing required keys: {seg}")
+
     combined_transcript = []
 
+    # Process each transcription segment
     for seg in transcription_segments:
         seg_start = seg["start"]
         seg_end = seg["end"]

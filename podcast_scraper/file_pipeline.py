@@ -2,6 +2,7 @@ import os
 import asyncio
 import aiohttp
 import logging
+import jsonlines
 from selenium import webdriver
 from pydub import AudioSegment
 from selenium.webdriver.chrome.service import Service
