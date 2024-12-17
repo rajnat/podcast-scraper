@@ -1,6 +1,6 @@
 import logging
 import warnings
-#from podcast_scraper.scrape import scrape_episode_links
+from podcast_scraper.scraper import scrape_episode_links
 import argparse
 from datetime import datetime, timezone
 import asyncio
@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
 # # Example usage
 # if __name__ == "__main__":
-#     page_url = "https://www.econlib.org/econtalk-archives-by-date/?selected_year=2006#content"  # Replace with the actual webpage URL
+#     setup_logging()
+#     page_url = "https://www.econlib.org/econtalk-archives-by-date/?selected_year=2007#content"  # Replace with the actual webpage URL
 #     xpath = "/html/body/section[2]/div/div/article/div[2]/h3/a"
 #     episode_links = scrape_episode_links(page_url, xpath)
 #     logging.info(episode_links)

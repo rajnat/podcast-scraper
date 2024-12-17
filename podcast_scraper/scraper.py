@@ -2,6 +2,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import logging
 
@@ -16,8 +19,12 @@ def scrape_episode_links(page_url, xpath):
     try:
         # Open the webpage
         driver.get(page_url)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, xpath))
+        )
         # Find all matching elements
         elements = driver.find_elements(By.XPATH, xpath)
+        logging.info(f"Found!!! {len(elements)}")
         # Extract the href attribute from each element
         episode_links = [element.get_attribute("href") for element in elements]
         logging.info(f"Found {len(episode_links)} episode links.")
