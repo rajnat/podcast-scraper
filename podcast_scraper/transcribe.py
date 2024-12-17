@@ -4,7 +4,25 @@ import whisper
 import os
 import re
 import logging
+import torch
 from podcast_scraper.attribution import assign_speaker_labels
+
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+def initialize_pipeline():
+    """
+    Initialize the Pyannote pipeline and move models to the MPS device (GPU on Apple Silicon).
+    """
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    hf_token = os.getenv("HF_API_TOKEN")
+    # Check MPS availability
+    if torch.backends.mps.is_available():
+        torch.set_default_tensor_type(torch.FloatTensor)  # Ensure tensors default to float
+        torch.set_default_device("mps")  # Set MPS as the default device for PyTorch
+
+    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token)
+    
+    return pipeline
+
 
 def generate_transcript(audio_path):
 
@@ -19,12 +37,12 @@ def generate_transcript(audio_path):
 
     # Load the Pyannote speaker diarization pipeline
     logging.info(f"Performing speaker diarization... for {wav_path}")
-    hf_token = os.getenv("HF_API_TOKEN")
-    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=hf_token, device="mps")
+    pipeline = initialize_pipeline()
     diarization = pipeline(wav_path)
 
     # Load the Whisper model
-    model = whisper.load_model("base")#.to("mps")  # Use 'base' model (can be adjusted)
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    model = whisper.load_model("base").to("mps")  # Use 'base' model (can be adjusted)
 
     # Transcribe with timestamps
     logging.info("Transcribing with Whisper...")

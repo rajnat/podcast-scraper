@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import jsonlines
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -26,7 +27,7 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
     with open(file_path, "r") as file:
         urls = file.readlines()
 
-    semantic_data = []
+    semantic_data_file = os.path.join(output_dir, "semantic_data.jsonl")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
     try:
@@ -46,7 +47,7 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
                 logging.info(f"No MP3 URL to process for {url}. Skipping...")
                 continue
             title = get_page_title(url)
-            audio_file = os.path.join(audio_dir, f"f{title}.mp3")
+            audio_file = os.path.join(audio_dir, f"{title}.mp3")
             try:
                 download_podcast(mp3_url, audio_file)
             except Exception as e:
@@ -54,22 +55,28 @@ def process_urls(file_path, iframe_xpath, element_xpath, output_dir):
                 continue
 
             try:
-                transcript = generate_transcript('data/output/audio/episode_1.mp3')
+                transcript = generate_transcript(audio_file)
                 transcript_file = os.path.join(transcripts_dir, f"{title}.txt")
                 save_transcript_to_file(transcript, transcript_file)
             except Exception as e:
                 logging.info(f"Failed to transcribe audio file {audio_file}. Skipping... Error: {e}")
                 continue
 
-            semantic_data.append({
-                "url": url,
-                "iframe_src": iframe_src,
-                "direct_mp3": direct_mp3,
-                "used_mp3_url": mp3_url,
-                "audio_file": audio_file,
-                "transcript_file": transcript_file,
-                "transcript_text": transcript
-            })
+                # Prepare data entry
+                data_entry = {
+                    "url": url,
+                    "iframe_src": iframe_src,
+                    "direct_mp3": direct_mp3,
+                    "used_mp3_url": mp3_url,
+                    "audio_file": audio_file,
+                    "transcript_file": transcript_file,
+                    "transcript_text": transcript
+                }
+
+                # Append to JSONL file
+                with jsonlines.open(semantic_data_file, mode='a') as writer:
+                    writer.write(data_entry)
+                logging.info(f"Data appended for URL: {url}")
     finally:
         driver.quit()
 

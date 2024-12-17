@@ -1,6 +1,7 @@
 import requests
 import os
 import logging
+import unicodedata
 from bs4 import BeautifulSoup
 
 def download_podcast(mp3_url, save_path):
@@ -40,7 +41,14 @@ def get_page_title(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     
-    # Extract the title and sanitize it for filenames
     title = soup.title.string.strip()
-    sanitized_title = title.replace(" ", "_").replace("/", "-").replace("\\", "-")  # Avoid invalid characters
+    # Extract the title and sanitize it for filenames
+    print(f"Raw title: {repr(title)}")
+    
+    # Normalize the string and remove non-ASCII characters
+    normalized_title = unicodedata.normalize("NFKD", title)
+    sanitized_title = "".join(c for c in normalized_title if c.isascii())
+    
+    # Replace invalid filename characters
+    sanitized_title = sanitized_title.replace(" ", "_").replace("/", "-").replace("\\", "-")
     return sanitized_title
