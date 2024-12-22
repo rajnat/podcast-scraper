@@ -34,60 +34,72 @@ async def process_file(file_path, iframe_xpath, link_xpath, output_dir, hf_token
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     semantic_data_file = os.path.join(output_dir, "semantic_data.jsonl")
-
+    MAX_RETRIES = 3
     async with aiohttp.ClientSession() as session:
         for url in urls:
-            try:
-                # Scrape MP3 URL
-                iframe_src, direct_mp3 = scrape_mp3_url(driver, url, iframe_xpath, link_xpath)
-                mp3_url = direct_mp3 or iframe_src
-                if not mp3_url:
-                    logging.info(f"No valid MP3 URL found for {url}. Skipping...")
-                    continue
+            retries = 0
+            while retries < MAX_RETRIES:
+                try:
+                    # Scrape MP3 URL
+                    iframe_src, direct_mp3 = scrape_mp3_url(driver, url, iframe_xpath, link_xpath)
+                    mp3_url = direct_mp3 or iframe_src
+                    if not mp3_url:
+                        logging.info(f"No valid MP3 URL found for {url}. Skipping...")
+                        break
 
-                # Download MP3
-                file_name = get_page_title(url)
-                mp3_path = os.path.join(audio_dir, f"{file_name}.mp3")
-                download_mp3(mp3_url, mp3_path)
+                    # Download MP3
+                    file_name = get_page_title(url)
+                    mp3_path = os.path.join(audio_dir, f"{file_name}.mp3")
+                    download_mp3(mp3_url, mp3_path)
 
-                # Convert to wav to help with speech segmentation and encoding issues with mp3
-                audio = AudioSegment.from_file(mp3_path, format="mp3")
-                audio_file = mp3_path.replace('.mp3', '.wav')
-                audio.export(audio_file, format="wav")
-                
-                # Transcribe and diarize
-                transcript_text, transcription_segments = transcribe_audio(audio_file)
-                diarization_result = diarize_audio(audio_file, hf_token)
-                combined_transcript = combine_transcription_and_diarization(transcription_segments, diarization_result)
+                    # Convert to wav
+                    audio = AudioSegment.from_file(mp3_path, format="mp3")
+                    audio_file = mp3_path.replace('.mp3', '.wav')
+                    audio.export(audio_file, format="wav")
 
-                # Save combined transcript
-                combined_file = os.path.join(transcripts_dir, f"{file_name}_combined.txt")
-                with open(combined_file, "w") as f:
-                    for entry in combined_transcript:
-                        # Format each line with the updated speaker label and text
-                        speaker = entry.get("speaker", "Unknown")
-                        start = entry.get("start", 0)
-                        end = entry.get("end", 0)
-                        text = entry.get("text", "")
-                        # Write the formatted line
-                        f.write(f"Speaker {speaker} ({start:.2f}-{end:.2f}): {text}\n")
-                logging.info(f"Processed and saved transcript for {url}.")
+                    # Transcribe and diarize
+                    transcript_text, transcription_segments = transcribe_audio(audio_file)
+                    diarization_result = diarize_audio(audio_file, hf_token)
+                    combined_transcript = combine_transcription_and_diarization(transcription_segments, diarization_result)
 
-                #save the translated info in semantic_data.json
-                data_entry = {
-                    "url": url,
-                    "iframe_src": iframe_src,
-                    "direct_mp3": direct_mp3,
-                    "used_mp3_url": mp3_url,
-                    "audio_file": audio_file,
-                    "transcript_file": combined_file,
-                }
+                    # Save combined transcript
+                    combined_file = os.path.join(transcripts_dir, f"{file_name}_combined.txt")
+                    with open(combined_file, "w") as f:
+                        for entry in combined_transcript:
+                            speaker = entry.get("speaker", "Unknown")
+                            start = entry.get("start", 0)
+                            end = entry.get("end", 0)
+                            text = entry.get("text", "")
+                            f.write(f"Speaker {speaker} ({start:.2f}-{end:.2f}): {text}\n")
+                    logging.info(f"Processed and saved transcript for {url}.")
 
-                # Append to JSONL file
-                with jsonlines.open(semantic_data_file, mode='a') as writer:
-                    writer.write(data_entry)
-                logging.info(f"Data appended for URL: {url}")
+                    # Save the translated info in semantic_data.json
+                    data_entry = {
+                        "url": url,
+                        "iframe_src": iframe_src,
+                        "direct_mp3": direct_mp3,
+                        "used_mp3_url": mp3_url,
+                        "audio_file": audio_file,
+                        "transcript_file": combined_file,
+                    }
 
-            except Exception as e:
-                logging.exception(f"Failed to process {url}: {e}")
+                    # Append to JSONL file
+                    with jsonlines.open(semantic_data_file, mode='a') as writer:
+                        writer.write(data_entry)
+                    logging.info(f"Data appended for URL: {url}")
+                    break  # Break the retry loop once processing is successful
+
+                except Exception as e:
+                    logging.exception(f"Failed to process {url}: {e}")
+                    if "disconnected: not connected to DevTools" in str(e):
+                        retries += 1
+                        logging.error(f"DevTools connection lost for {url}. Attempt {retries}/{MAX_RETRIES}")
+                        if retries < MAX_RETRIES:
+                            # Close the current driver and create a new one
+                            driver.quit()
+                            driver = create_new_driver()
+                            logging.info("Restarting the Selenium WebDriver...")
+                        else:
+                            logging.error(f"Max retries reached for {url}. Skipping...")
+                            break  # Skip the current URL after MAX_RETRIES
     driver.quit()
