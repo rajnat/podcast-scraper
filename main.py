@@ -49,10 +49,10 @@ if __name__ == "__main__":
             raise ValueError("Both --iframe-xpath and --link-xpath are required for 'file' type.")
         asyncio.run(process_file(args.source, args.iframe_xpath, args.link_xpath, args.output_dir, args.hf_token))
 
-# # Example usage
+# Example usage
 # if __name__ == "__main__":
 #     setup_logging()
-#     page_url = "https://www.econlib.org/econtalk-archives-by-date/?selected_year=2009#content"  # Replace with the actual webpage URL
+#     page_url = "https://www.econlib.org/econtalk-archives-by-date/?selected_year=2013#content"  # Replace with the actual webpage URL
 #     xpath = "/html/body/section[2]/div/div/article/div[2]/h3/a"
 #     episode_links = scrape_episode_links(page_url, xpath)
 #     logging.info(episode_links)

@@ -87,8 +87,15 @@ async def process_file(file_path, iframe_xpath, link_xpath, output_dir, hf_token
                     with jsonlines.open(semantic_data_file, mode='a') as writer:
                         writer.write(data_entry)
                     logging.info(f"Data appended for URL: {url}")
-                    break  # Break the retry loop once processing is successful
 
+                    # Delete the audio file
+                    try:
+                        os.remove(audio_file)
+                        os.remove(mp3_path)
+                    except Exception as exception:
+                        logging.error(f"Failed to delete audio file: {exception}")
+
+                    break  # Break the retry loop once processing is successful
                 except Exception as e:
                     logging.exception(f"Failed to process {url}: {e}")
                     if "disconnected: not connected to DevTools" in str(e):
